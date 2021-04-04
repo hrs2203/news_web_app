@@ -1,25 +1,36 @@
 {
-  "name": "news_web_app",
+  "name": "coffee",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@reduxjs/toolkit": "^1.5.0",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.5.0",
-    "@testing-library/user-event": "^7.2.1",
+    "@testing-library/jest-dom": "^5.11.9",
+    "@testing-library/react": "^11.2.5",
+    "@testing-library/user-event": "^12.7.3",
+    "autoprefixer": "^10.2.5",
+    "bootstrap-4-react": "^0.0.59",
+    "gh-pages": "^3.1.0",
+    "postcss": "^8.2.8",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-redux": "^7.2.2",
-    "react-scripts": "4.0.3"
+    "react-scripts": "4.0.3",
+    "remarkable": "^2.0.1",
+    "tailwindcss": "^2.0.3",
+    "web-vitals": "^1.1.0"
   },
+  "homepage": "https://hrs2203.github.io/coffee",
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
   },
   "browserslist": {
     "production": [
