@@ -30,34 +30,97 @@ export class LoginPageComp extends React.Component {
 	 * delete pref as if new user is logged it.
 	 */
 	login_btn() {
-		var newUserPref = this.props.defaultUser.userPref;
-		var newUserHistory = this.props.defaultUser.userSearchHistory;
-		// if (!(this.state.email === this.props.defaultUser.email)) {
-		// 	Object.keys(newUserPref).forEach( k => newUserPref[k] = 0 )
-		// 	newUserHistory = [];
-		// }
-		this.props.updateGlobal({
-			"pageIndex": 2,
-			"isLoggedIn": true,
-			"userDetail": {
-				"userName": this.state.username,
-				"email": this.state.email,
-				"userId": this.state.password,
-				"userPref": newUserPref,
-				"userSearchHistory": newUserHistory
+		console.log("login btn");
+
+		const requestOptions = {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
 			},
-			"messageBody": {
-				"messageType": 0,
-				"messageBody": `Welcome ${this.state.username}`,
-				"showMessage": true
-			}
-		})
+			body: JSON.stringify({
+				email: this.state.email,
+				password: this.state.password
+			})
+		};
+
+		fetch("http://127.0.0.1:8000/api/user/auth/login", requestOptions)
+			.then(async (resp) => {
+				const data = await resp.json();
+				if (data.data.status === true) {
+					this.props.updateGlobal({
+						"messageBody": {
+							"messageType": 0,
+							"messageBody": `${data.data.message}, Getting User Details`,
+							"showMessage": true
+						}
+					})
+
+					fetch(
+						`http://127.0.0.1:8000/api/user?userEmail=${this.state.email}`
+					).then(resp => resp.json())
+						.then(data => {
+							var newUserPref = this.props.defaultUser.userPref;
+							var newUserHistory = this.props.defaultUser.userSearchHistory;
+							this.props.updateGlobal({
+								"pageIndex": 2,
+								"isLoggedIn": true,
+								"userDetail": {
+									"userName": data.data.user.user_name,
+									"email": data.data.user.email,
+									"userId": data.data.user._id,
+									"userPref": newUserPref,
+									"userSearchHistory": newUserHistory
+								},
+								"messageBody": {
+									"messageType": 0,
+									"messageBody": `Welcome ${data.data.user.user_name}`,
+									"showMessage": true
+								}
+							})
+						})
+						.catch(err => { console.log(err) })
+
+				} else {
+					this.props.updateGlobal({
+						"messageBody": {
+							"messageType": 1,
+							"messageBody": data.data.message,
+							"showMessage": true
+						}
+					})
+				}
+
+				// var newUserPref = this.props.defaultUser.userPref;
+				// var newUserHistory = this.props.defaultUser.userSearchHistory;
+				// if (!(this.state.email === this.props.defaultUser.email)) {
+				// 	Object.keys(newUserPref).forEach( k => newUserPref[k] = 0 )
+				// 	newUserHistory = [];
+				// }
+				// this.props.updateGlobal({
+				// 	"pageIndex": 2,
+				// 	"isLoggedIn": true,
+				// 	"userDetail": {
+				// 		"userName": this.state.username,
+				// 		"email": data.data.email,
+				// 		"userId": data.data.password,
+				// 		"userPref": newUserPref,
+				// 		"userSearchHistory": newUserHistory
+				// 	},
+				// 	"messageBody": {
+				// 		"messageType": 0,
+				// 		"messageBody": `Welcome ${this.state.username}`,
+				// 		"showMessage": true
+				// 	}
+				// })
+			})
+			.catch(err => console.log(err))
+
 	}
 
 	render() {
 		return (
 			<div className="card p-2" >
-				<form className="m-4">
+				<div className="m-4">
 					<div className="form-group m-1">
 						<label>Email address</label>
 						<input
@@ -86,13 +149,40 @@ export class LoginPageComp extends React.Component {
 					</div>
 					<br></br>
 					<button
-						type="submit"
+						type=""
 						className="btn btn-outline-success"
-						onClick={this.login_btn}
+						onClick={
+							() => this.login_btn()
+							// () => {
+							// 	const requestOptions = {
+							// 		method: 'POST',
+							// 		headers: {
+							// 			'Content-Type': 'application/json',
+							// 		},
+							// 		body: JSON.stringify({
+							// 			email: "user1@gmail.com",
+							// 			password: "user2pwd"
+							// 		})
+							// 	};
+
+							// 	const url = 'http://127.0.0.1:8000/api/user/auth/login'
+
+							// 	fetch(
+							// 		url, requestOptions)
+							// 		.then(resp => {
+							// 			console.log(resp);
+							// 			return resp
+							// 		})
+							// 		.then(resp => resp.json())
+							// 		.then(data => {
+							// 			console.log(data);
+							// 		}).catch(err => console.log(err))
+							// }
+						}
 					>
-						Submit
+						Login
 					</button>
-				</form>
+				</div>
 			</div>
 		)
 	}
