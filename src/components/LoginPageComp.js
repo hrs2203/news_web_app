@@ -193,61 +193,92 @@ export class SignupPageComp extends React.Component {
 
 		console.log("Signup btn");
 
-		const requestOptions = {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				username: this.state.username,
-				email: this.state.email,
-				password: this.state.password
-			})
-		};
-		fetch("http://127.0.0.1:8000/api/user/auth/registration",
-			requestOptions).then(resp => resp.json())
-			.then(respData => {
-
-				var userHistory = respData.data.user_detail.user_visit_history;
-				userHistory = userHistory.map(
-					item => Object({
-						title: item["news_title"],
-						searchClass: item["news_category"],
-						searchTime: item["news_time"],
-						searchUrl: item["news_link"],
-					})
-				)
-				var userPreference = {
-					"ent": 0,
-					"gov": 0,
-					"othe": 0,
-					"tech": 0,
+		if (this.state.email === "") {
+			this.props.updateGlobal({
+				"messageBody": {
+					"messageType": 1,
+					"messageBody": `Email not provided`,
+					"showMessage": true
 				}
-				userHistory.forEach(element => {
-					userPreference[element["searchClass"]] = userPreference[element["searchClass"]] + 1
-				});
-
-				console.log(userPreference);
-
-				this.props.updateGlobal({
-					"pageIndex": 2,
-					"isLoggedIn": true,
-					"userDetail": {
-						"userName": respData.data.user.user_name,
-						"email": respData.data.user.email,
-						"userId": respData.data.user._id,
-						"userPref": userPreference,
-						"userSearchHistory": userHistory
-					},
-					"messageBody": {
-						"messageType": 0,
-						"messageBody": `Welcome ${respData.data.userName}`,
-						"showMessage": true
-					}
-				})
 			})
-			.catch(err => console.log(err))
+		}
 
+		else if (this.state.username === "") {
+			this.props.updateGlobal({
+				"messageBody": {
+					"messageType": 1,
+					"messageBody": `username not provided`,
+					"showMessage": true
+				}
+			})
+		}
+
+		else if (this.state.password === "") {
+			this.props.updateGlobal({
+				"messageBody": {
+					"messageType": 1,
+					"messageBody": `password not provided`,
+					"showMessage": true
+				}
+			})
+		}
+
+		else {
+			const requestOptions = {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					username: this.state.username,
+					email: this.state.email,
+					password: this.state.password
+				})
+			};
+			fetch("http://127.0.0.1:8000/api/user/auth/registration",
+				requestOptions).then(resp => resp.json())
+				.then(respData => {
+
+					var userHistory = respData.data.user_detail.user_visit_history;
+					userHistory = userHistory.map(
+						item => Object({
+							title: item["news_title"],
+							searchClass: item["news_category"],
+							searchTime: item["news_time"],
+							searchUrl: item["news_link"],
+						})
+					)
+					var userPreference = {
+						"ent": 0,
+						"gov": 0,
+						"othe": 0,
+						"tech": 0,
+					}
+					userHistory.forEach(element => {
+						userPreference[element["searchClass"]] = userPreference[element["searchClass"]] + 1
+					});
+
+					console.log(userPreference);
+
+					this.props.updateGlobal({
+						"pageIndex": 2,
+						"isLoggedIn": true,
+						"userDetail": {
+							"userName": respData.data.user.user_name,
+							"email": respData.data.user.email,
+							"userId": respData.data.user._id,
+							"userPref": userPreference,
+							"userSearchHistory": userHistory
+						},
+						"messageBody": {
+							"messageType": 0,
+							"messageBody": `Welcome ${respData.data.userName}`,
+							"showMessage": true
+						}
+					})
+				})
+				.catch(err => console.log(err))
+		}
 
 	}
 
