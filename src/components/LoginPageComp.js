@@ -59,8 +59,28 @@ export class LoginPageComp extends React.Component {
 						`http://127.0.0.1:8000/api/user?userEmail=${this.state.email}`
 					).then(resp => resp.json())
 						.then(data => {
-							var newUserPref = this.props.defaultUser.userPref;
-							var newUserHistory = this.props.defaultUser.userSearchHistory;
+
+							var userHistory = data.data.user_detail.user_visit_history;
+							userHistory = userHistory.map(
+								item => Object({
+									title: item["news_title"],
+									searchClass: item["news_category"],
+									searchTime: item["news_time"],
+									searchUrl: item["news_link"],
+								})
+							)
+							var userPreference = {
+								"ent": 0,
+								"gov": 0,
+								"othe": 0,
+								"tech": 0,
+							}
+							userHistory.forEach(element => {
+								userPreference[element["searchClass"]] = userPreference[element["searchClass"]] + 1
+							});
+
+							console.log(userPreference);
+
 							this.props.updateGlobal({
 								"pageIndex": 2,
 								"isLoggedIn": true,
@@ -68,8 +88,8 @@ export class LoginPageComp extends React.Component {
 									"userName": data.data.user.user_name,
 									"email": data.data.user.email,
 									"userId": data.data.user._id,
-									"userPref": newUserPref,
-									"userSearchHistory": newUserHistory
+									"userPref": userPreference,
+									"userSearchHistory": userHistory
 								},
 								"messageBody": {
 									"messageType": 0,
@@ -89,29 +109,6 @@ export class LoginPageComp extends React.Component {
 						}
 					})
 				}
-
-				// var newUserPref = this.props.defaultUser.userPref;
-				// var newUserHistory = this.props.defaultUser.userSearchHistory;
-				// if (!(this.state.email === this.props.defaultUser.email)) {
-				// 	Object.keys(newUserPref).forEach( k => newUserPref[k] = 0 )
-				// 	newUserHistory = [];
-				// }
-				// this.props.updateGlobal({
-				// 	"pageIndex": 2,
-				// 	"isLoggedIn": true,
-				// 	"userDetail": {
-				// 		"userName": this.state.username,
-				// 		"email": data.data.email,
-				// 		"userId": data.data.password,
-				// 		"userPref": newUserPref,
-				// 		"userSearchHistory": newUserHistory
-				// 	},
-				// 	"messageBody": {
-				// 		"messageType": 0,
-				// 		"messageBody": `Welcome ${this.state.username}`,
-				// 		"showMessage": true
-				// 	}
-				// })
 			})
 			.catch(err => console.log(err))
 
@@ -151,34 +148,7 @@ export class LoginPageComp extends React.Component {
 					<button
 						type=""
 						className="btn btn-outline-success"
-						onClick={
-							() => this.login_btn()
-							// () => {
-							// 	const requestOptions = {
-							// 		method: 'POST',
-							// 		headers: {
-							// 			'Content-Type': 'application/json',
-							// 		},
-							// 		body: JSON.stringify({
-							// 			email: "user1@gmail.com",
-							// 			password: "user2pwd"
-							// 		})
-							// 	};
-
-							// 	const url = 'http://127.0.0.1:8000/api/user/auth/login'
-
-							// 	fetch(
-							// 		url, requestOptions)
-							// 		.then(resp => {
-							// 			console.log(resp);
-							// 			return resp
-							// 		})
-							// 		.then(resp => resp.json())
-							// 		.then(data => {
-							// 			console.log(data);
-							// 		}).catch(err => console.log(err))
-							// }
-						}
+						onClick={this.login_btn}
 					>
 						Login
 					</button>
@@ -220,28 +190,71 @@ export class SignupPageComp extends React.Component {
 	}
 
 	signup_btn() {
-		this.props.updateGlobal({
-			"pageIndex": 2,
-			"isLoggedIn": true,
-			"userDetail": {
-				"userName": this.state.username,
-				"email": this.state.email,
-				"userId": this.state.password,
-				"userPref": this.props.defaultUser.userPref,
-				"userSearchHistory": this.props.defaultUser.userSearchHistory
+
+		console.log("Signup btn");
+
+		const requestOptions = {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
 			},
-			"messageBody": {
-				"messageType": 0,
-				"messageBody": `Welcome ${this.state.username}`,
-				"showMessage": true
-			}
-		})
+			body: JSON.stringify({
+				username: this.state.username,
+				email: this.state.email,
+				password: this.state.password
+			})
+		};
+		fetch("http://127.0.0.1:8000/api/user/auth/registration",
+			requestOptions).then(resp => resp.json())
+			.then(respData => {
+
+				var userHistory = respData.data.user_detail.user_visit_history;
+				userHistory = userHistory.map(
+					item => Object({
+						title: item["news_title"],
+						searchClass: item["news_category"],
+						searchTime: item["news_time"],
+						searchUrl: item["news_link"],
+					})
+				)
+				var userPreference = {
+					"ent": 0,
+					"gov": 0,
+					"othe": 0,
+					"tech": 0,
+				}
+				userHistory.forEach(element => {
+					userPreference[element["searchClass"]] = userPreference[element["searchClass"]] + 1
+				});
+
+				console.log(userPreference);
+
+				this.props.updateGlobal({
+					"pageIndex": 2,
+					"isLoggedIn": true,
+					"userDetail": {
+						"userName": respData.data.user.user_name,
+						"email": respData.data.user.email,
+						"userId": respData.data.user._id,
+						"userPref": userPreference,
+						"userSearchHistory": userHistory
+					},
+					"messageBody": {
+						"messageType": 0,
+						"messageBody": `Welcome ${respData.data.userName}`,
+						"showMessage": true
+					}
+				})
+			})
+			.catch(err => console.log(err))
+
+
 	}
 
 	render() {
 		return (
 			<div className="card p-2" >
-				<form className="m-4">
+				<div className="m-4">
 					<div className="form-group m-1">
 						<label>User Name</label>
 						<input type="UserName"
@@ -281,13 +294,13 @@ export class SignupPageComp extends React.Component {
 					</div>
 					<br></br>
 					<button
-						type="submit"
+						type=""
 						className="btn btn-outline-success"
 						onClick={this.signup_btn}
 					>
 						Submit
 					</button>
-				</form>
+				</div>
 			</div>
 		)
 	}
