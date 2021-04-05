@@ -42,20 +42,80 @@ class SearchResultUnit extends React.Component {
 		return headMap[cat];
 	}
 
-	loadNewsPage(query) {
+	loadNewsPage(email, query) {
 		var d = new Date();
-		this.props.updateUserPref({
-			"title": query["title"],
-			"searchTime": d.toDateString(),
-			"searchUrl": query["url"],
-			"searchClass": query["category"]
-		})
-		window.open(query["url"])
+		// this.props.updateUserPref({
+		// 	"title": query["title"],
+		// 	"searchTime": d.toDateString(),
+		// 	"searchUrl": query["url"],
+		// 	"searchClass": query["category"]
+		// })
+
+		const requestOptions = {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				"user_email": this.props.userDetail.email,
+				"news_token": {
+					"news_title": query["title"],
+					"news_link": query["url"],
+					"news_time": d.toDateString(),
+					"news_category": query["category"]
+				}
+			})
+		};
+
+		fetch(
+			"http://127.0.0.1:8000/api/user/update", requestOptions
+		).then(resp1 => resp1.json())
+			.then(data1 => {
+				fetch(
+					`http://127.0.0.1:8000/api/user?userEmail=${this.props.userDetail.email}`
+				).then(resp => resp.json())
+					.then(data => {
+						console.log(data);
+						var userHistory = data.data.user_detail.user_visit_history;
+						userHistory = userHistory.map(
+							item => Object({
+								title: item["news_title"],
+								searchClass: item["news_category"],
+								searchTime: item["news_time"],
+								searchUrl: item["news_link"],
+							})
+						)
+						var userPreference = {
+							"ent": 0,
+							"gov": 0,
+							"othe": 0,
+							"tech": 0,
+						}
+						userHistory.forEach(element => {
+							userPreference[element["searchClass"]] = userPreference[element["searchClass"]] + 1
+						});
+
+						this.props.updateGlobal({
+							"userDetail": {
+								"userName": this.props.userDetail.userName,
+								"email": this.props.userDetail.email,
+								"userId": this.props.userDetail.userId,
+								"userPref": userPreference,
+								"userSearchHistory": userHistory
+							}
+						})
+						window.open(query["url"])
+					})
+					.catch(err => {
+						console.log(err)
+						window.open(query["url"]);
+					})
+			})
 	}
 
 	render() {
 		return (
-			<div className="card mb-3 shadow-sm">
+			<div className="card mb-3 shadow-sm" >
 				<div className="card-body">
 					<div className="row">
 						<div className="col-9">
@@ -96,10 +156,13 @@ class SearchResultUnit extends React.Component {
 
 						</div>
 						<div className="col">
-							{/* <a href={this.props.resultQuery["url"]}> */}
 							<button
 								onClick={() => {
-									this.loadNewsPage(this.props.resultQuery)
+									console.log(this.props.email);
+									this.loadNewsPage(
+										this.props.email,
+										this.props.resultQuery
+									)
 								}}
 								className="btn btn-outline-success">
 								Read Complete Article
@@ -143,8 +206,10 @@ export class SearchPageComp extends React.Component {
 			if (news_title[index]['title'].toLowerCase().includes(this.state.query.toLowerCase())) {
 				respList.push(
 					<SearchResultUnit
+						userDetail={this.props.userDetail}
 						resultQuery={news_title[index]}
 						updateUserPref={this.props.updateUserPref}
+						updateGlobal={this.props.updateGlobal}
 					/>
 				)
 			}
@@ -157,8 +222,10 @@ export class SearchPageComp extends React.Component {
 		for (let index = 0; index < 15; index++) {
 			respList.push(
 				<SearchResultUnit
+					userDetail={this.props.userDetail}
 					resultQuery={news_title[index]}
 					updateUserPref={this.props.updateUserPref}
+					updateGlobal={this.props.updateGlobal}
 				/>
 			)
 		}

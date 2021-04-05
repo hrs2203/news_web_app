@@ -144,7 +144,9 @@ class SinglePageApp extends React.Component {
     }
     else if (this.state.pageIndex === 1) {
       childComponent = <SearchPageComp
+        userDetail={this.state.userDetail}
         updateUserPref={this.updateSearchPref}
+        updateGlobal={this.updateGlobal}
       />
     }
     else if (this.state.pageIndex === 2) {
