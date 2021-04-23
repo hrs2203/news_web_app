@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const server_url = "localhost:8000";
+const server_url = "http://127.0.0.1:8000";
 
 
 export function login_user(user_email, user_password) {
