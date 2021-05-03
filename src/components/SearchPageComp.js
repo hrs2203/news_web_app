@@ -169,32 +169,21 @@ export class SearchPageComp extends React.Component {
 	makeGlobalSearch(query) {
 		return fetch(`http://127.0.0.1:8000/api/search/unseenquery?q=${query}`)
 			.then(resp => {
-				return fetch(`http://127.0.0.1:8000/api/search/unseenquery/fill_db`)
-					.then(resp => {
-						return fetch(`http://127.0.0.1:8000/api/search/all`)
-							.then(data => data.json())
-							.then(data => {
-								var serchList = [];
-								console.log(this.state.query);
-								console.log(data.data.length);
-								for (let index = 0; index < data.data.length; index++) {
-									if (data.data[index]['news_title'].toLowerCase().includes(this.state.query.toLowerCase())) {
-										serchList.push(data.data[index])
-									}
-								}
-								return serchList;
-							})
-							.then(data => {
-								var resData = data.map(item => Object({
-									title: item["news_title"],
-									author: item["news_author"],
-									category: item["news_category"],
-									publishedAt: item["news_publishedAt"],
-									url: item["news_url"]
-								}))
-								return resData;
-							}).catch(err => console.log(err))
-					}).catch(err => console.log(err))
+				return fetch(`http://127.0.0.1:8000/api/search/get?q=${query}`)
+					.then(data => data.json())
+					.then(data => data.data)
+					.then(data => {
+						var cats = ["othe", "ent",  "tech", "gov"]
+						var resData = data.map(item => Object({
+							title: item["title"],
+							author: item["author"],
+							category: cats[Math.ceil(Math.random()*10)%4],
+							publishedAt: item["publishedAt"],
+							url: item["url"]
+						}))
+						return resData;
+					})
+					.catch(err => console.log(err))
 			}).catch(err => console.log(err))
 	}
 
@@ -262,7 +251,7 @@ export class SearchPageComp extends React.Component {
 		var searchResult = <div></div>;
 		var component_list = [];
 
-		for (let index = 0; index < Math.min(30, this.state.listContent.length); index++) {
+		for (let index = 0; index < Math.min(100, this.state.listContent.length); index++) {
 			component_list.push(
 				<SearchResultUnit
 					userDetail={this.props.userDetail}
@@ -295,18 +284,18 @@ export class SearchPageComp extends React.Component {
 							this.makeGlobalSearch(this.state.query)
 								.then(resp_list => {
 									resp_list = resp_list || [] // in case of undefined
-									if (resp_list.length === 0){
-										this.setState({ 
+									if (resp_list.length === 0) {
+										this.setState({
 											listContent: resp_list || [],
-											searchMessage: "Sorry, no result was found in our database. Please come again in few days"
+											searchMessage: "Sorry, no result was found in our database. We will add this data on our end by the end of this day. Thank you."
 										})
-									}else{
-										this.setState({ 
+									} else {
+										this.setState({
 											listContent: resp_list || [],
 											searchMessage: "Global Search Result"
 										})
 									}
-									
+
 								}).catch(err => console.log(err))
 						}}>
 						Global Search </button>

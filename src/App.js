@@ -152,6 +152,7 @@ class SinglePageApp extends React.Component {
     else if (this.state.pageIndex === 2) {
       childComponent = <UserDetailComp
         userDetail={this.state.userDetail}
+        globalUpdate={this.updateGlobal}
       />
     }
     else if (this.state.pageIndex === 3) {

@@ -81,46 +81,6 @@ class UserCard extends React.Component {
   }
 }
 
-// class UserPrefCard extends React.Component {
-//   render() {
-//     return (
-//       <div className="card smallWidth mt-3 p-3">
-//         <h5 className="text-center">
-//           {this.props.userName}'s Preferences
-//         </h5>
-//         <ul className="list-group list-group-flush text-center">
-//           <li className="list-group-item">
-//             <div className="row">
-//               <div className='col'>entertainment</div>
-//               <div className='col'>government</div>
-//               <div className='col'>others</div>
-//               <div className='col'>technology</div>
-//             </div>
-//           </li>
-//           <li className="list-group-item">
-//             <div className="row">
-//               <div className="row">
-//                 <div className='col'>{
-//                   this.props.userPref.ent
-//                 }</div>
-//                 <div className='col'>{
-//                   this.props.userPref.gov
-//                 }</div>
-//                 <div className='col'>{
-//                   this.props.userPref.oth
-//                 }</div>
-//                 <div className='col'>{
-//                   this.props.userPref.tech
-//                 }</div>
-//               </div>
-//             </div>
-//           </li>
-//         </ul>
-//       </div>
-//     )
-//   }
-// }
-
 class HistoryListElement extends React.Component {
   render() {
     return (
@@ -146,16 +106,7 @@ class UserSearchHistory extends React.Component {
 
   constructor() {
     super();
-    this.state = {
-      "historyDepth": 5
-    }
-    this.showMore = this.showMore.bind(this)
-  }
-
-  showMore() {
-    this.setState({
-      historyDepth: (this.state.historyDepth + 10) % 20
-    })
+    this.state = {};
   }
 
   render() {
@@ -178,8 +129,8 @@ class UserSearchHistory extends React.Component {
         </div>
       </li>
     )
-    console.log(this.props.userHistory);
-    for (let ind = this.props.userHistory.length-1; ind >= 0 ; ind--) {
+    console.log(this.props);
+    for (let ind = this.props.userHistory.length - 1; ind >= 0; ind--) {
       historyList.push(
         <li className="list-group-item">
           <HistoryListElement
@@ -192,17 +143,53 @@ class UserSearchHistory extends React.Component {
     return (
       <div className="card mt-3 p-3">
         <h5 className="text-center">
-          {this.props.userName}'s Search History
+          {this.props.user.userName}'s Search History
         </h5>
         <ul className="mt-3 list-group list-group-flush">
           {historyList}
         </ul>
-        {/* <button
-          onClick={
-            () => { this.showMore(); }
-          } className="btn m-2">
-          Show {this.state.historyDepth === 5 ? "More" : "Less"}
-        </button> */}
+        <button
+          onClick={() => {
+            const requestOptions = {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                user_email: this.props.user.email,
+              })
+            };
+            fetch("http://127.0.0.1:8000/api/user/clean_history", requestOptions)
+              .then(data => data.json())
+              .then(data => {
+                console.log(data);
+                this.props.globalUpdate({
+                  "userDetail": {
+                    "userName": this.props.user.userName,
+                    "email": this.props.user.email,
+                    "userId": this.props.user.userId,
+                    "userPref": { "ent": 0, "gov": 0, "othe": 0, "tech": 0 },
+                    "userSearchHistory": []
+                  },
+                  "messageBody": {
+                    "messageType": 0,
+                    "messageBody": `History Cleaned`,
+                    "showMessage": true
+                  }
+                })
+              })
+              .catch(err => {
+                this.props.globalUpdate({
+                  "messageBody": {
+                    "messageType": 1,
+                    "messageBody": `Error while cleaning history, please try again later.`,
+                    "showMessage": true
+                  }
+                })
+              })
+          }} className="btn m-2">
+          Clean History
+        </button>
       </div>
     )
   }
@@ -218,13 +205,10 @@ export class UserDetailComp extends React.Component {
           userId={this.props.userDetail.userId}
           userPref={this.props.userDetail.userPref}
         />
-        {/* <UserPrefCard
-          userName={this.props.userDetail.userName}
-          userPref={this.props.userDetail.userPref}
-        /> */}
         <UserSearchHistory
-          userName={this.props.userDetail.userName}
+          user={this.props.userDetail}
           userHistory={this.props.userDetail.userSearchHistory}
+          globalUpdate={this.props.globalUpdate}
         />
       </div>
     )
