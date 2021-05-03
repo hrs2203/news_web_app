@@ -2,34 +2,12 @@ import React from 'react';
 
 import { news_title } from './LocalDataLoad.js';
 
-/**
- * 
- * {
-		"title": "sample search title",
-		"searchTime": "sample search time",
-		"searchUrl": "sample search URL",
-		"searchClass": "sample search class"
-	},
-	{
-		"title": "sample search title",
-		"searchTime": "sample search time",
-		"searchUrl": "sample search URL",
-		"searchClass": "sample search class"
-	},
-	{
-		"title": "sample search title",
-		"searchTime": "sample search time",
-		"searchUrl": "sample search URL",
-		"searchClass": "sample search class"
-	}
- */
-
 class SearchResultUnit extends React.Component {
 
 	constructor() {
 		super();
 		this.getCategory = this.getCategory.bind(this);
-		this.loadNewsPage = this.loadNewsPage.bind(this)
+		this.loadNewsPage = this.loadNewsPage.bind(this);
 	}
 
 	getCategory(cat) {
@@ -75,7 +53,6 @@ class SearchResultUnit extends React.Component {
 					`http://127.0.0.1:8000/api/user?userEmail=${this.props.userDetail.email}`
 				).then(resp => resp.json())
 					.then(data => {
-						console.log(data);
 						var userHistory = data.data.user_detail.user_visit_history;
 						userHistory = userHistory.map(
 							item => Object({
@@ -86,11 +63,9 @@ class SearchResultUnit extends React.Component {
 							})
 						)
 						var userPreference = {
-							"ent": 0,
-							"gov": 0,
-							"othe": 0,
-							"tech": 0,
+							"ent": 0, "gov": 0, "othe": 0, "tech": 0,
 						}
+
 						userHistory.forEach(element => {
 							userPreference[element["searchClass"]] = userPreference[element["searchClass"]] + 1
 						});
@@ -182,25 +157,64 @@ export class SearchPageComp extends React.Component {
 		super()
 		this.state = {
 			query: "",
-			showResponse: true
+			showResponse: false,
+			listContent: news_title,
+			searchMessage: ""
 		}
 		this.changeQuery = this.changeQuery.bind(this);
-		this.showResult = this.showResult.bind(this);
+		this.showContent = this.showContent.bind(this);
+		this.makeGlobalSearch = this.makeGlobalSearch.bind(this);
+	}
+
+	makeGlobalSearch(query) {
+		return fetch(`http://127.0.0.1:8000/api/search/unseenquery?q=${query}`)
+			.then(resp => {
+				return fetch(`http://127.0.0.1:8000/api/search/unseenquery/fill_db`)
+					.then(resp => {
+						return fetch(`http://127.0.0.1:8000/api/search/all`)
+							.then(data => data.json())
+							.then(data => {
+								var serchList = [];
+								console.log(this.state.query);
+								console.log(data.data.length);
+								for (let index = 0; index < data.data.length; index++) {
+									if (data.data[index]['news_title'].toLowerCase().includes(this.state.query.toLowerCase())) {
+										serchList.push(data.data[index])
+									}
+								}
+								return serchList;
+							})
+							.then(data => {
+								var resData = data.map(item => Object({
+									title: item["news_title"],
+									author: item["news_author"],
+									category: item["news_category"],
+									publishedAt: item["news_publishedAt"],
+									url: item["news_url"]
+								}))
+								return resData;
+							}).catch(err => console.log(err))
+					}).catch(err => console.log(err))
+			}).catch(err => console.log(err))
 	}
 
 	changeQuery(event) {
+
+		var new_domain = [];
+		if (event.target.value === "") {
+			new_domain = news_title
+		} else {
+			new_domain = this.makeSearch();
+		}
+
 		this.setState({
-			query: event.target.value
+			query: event.target.value,
+			listContent: new_domain,
+			searchMessage: ""
 		})
 	}
 
-	showResult() {
-		this.setState({
-			showResponse: true
-		})
-	}
-
-	makeSearch() {
+	showContent() {
 		var respList = [];
 		for (let index = 0; index < news_title.length; index++) {
 			if (news_title[index]['title'].toLowerCase().includes(this.state.query.toLowerCase())) {
@@ -212,6 +226,15 @@ export class SearchPageComp extends React.Component {
 						updateGlobal={this.props.updateGlobal}
 					/>
 				)
+			}
+		}
+	}
+
+	makeSearch() {
+		var respList = [];
+		for (let index = 0; index < news_title.length; index++) {
+			if (news_title[index]['title'].toLowerCase().includes(this.state.query.toLowerCase())) {
+				respList.push(news_title[index])
 			}
 		}
 		return respList;
@@ -237,27 +260,21 @@ export class SearchPageComp extends React.Component {
 
 		var searchView = <div></div>;
 		var searchResult = <div></div>;
+		var component_list = [];
 
-		if (!(this.state.query === "")) {
-			searchView = <div className="p-2">
-				Look for .... {this.state.query}
-			</div>
-		}
-		if (this.state.showResponse) {
-			searchView = <div></div>;
-			var content = [];
-			if (this.state.query === "") {
-				content = this.defaultList();
-			}
-			else {
-				content = this.makeSearch();
-				searchView = <div>
-					{content.length} out of {news_title.length} results
-				</div>
-			}
-			searchResult = <div><hr />{content}</div>;
+		for (let index = 0; index < Math.min(30, this.state.listContent.length); index++) {
+			component_list.push(
+				<SearchResultUnit
+					userDetail={this.props.userDetail}
+					resultQuery={this.state.listContent[index]}
+					updateUserPref={this.props.updateUserPref}
+					updateGlobal={this.props.updateGlobal}
+				/>
+			)
 		}
 
+		searchResult = <div>{component_list}</div>
+		searchView = <div>{this.state.searchMessage}</div>
 
 		return (
 			<div className="row">
@@ -274,8 +291,25 @@ export class SearchPageComp extends React.Component {
 				<div className="col">
 					<button
 						className="btn btn-primary btn-block"
-						onClick={() => { }}
-					> Global Search </button>
+						onClick={() => {
+							this.makeGlobalSearch(this.state.query)
+								.then(resp_list => {
+									resp_list = resp_list || [] // in case of undefined
+									if (resp_list.length === 0){
+										this.setState({ 
+											listContent: resp_list || [],
+											searchMessage: "Sorry, no result was found in our database. Please come again in few days"
+										})
+									}else{
+										this.setState({ 
+											listContent: resp_list || [],
+											searchMessage: "Global Search Result"
+										})
+									}
+									
+								}).catch(err => console.log(err))
+						}}>
+						Global Search </button>
 				</div>
 				<div>
 					<br />

@@ -4,7 +4,7 @@ import {
 	news_file_data_gov_file1,
 	news_file_data_tech_file1,
 	news_file_data_othe_file1
-} from '../components/LocalDataLoad.js';
+} from './LocalDataLoad.js';
 
 
 class ExpandedNewsContent extends React.Component {
@@ -45,12 +45,12 @@ class NewsComponent extends React.Component {
 	}
 
 	render() {
-		var newsHeader = `${this.props.news.title}`;
-		var newsBody = `${this.props.news.description}`;
-		var newsLocation = `${this.props.news.url}`;
-		var newTime = `${this.props.news.publishedAt}`;
-		var newsBigBody = `${this.props.news.content}`;
-		var newsAuthor = this.props.news.author
+		var newsHeader = this.props.news.news_title;
+		var newsBody = this.props.news.news_description;
+		var newsLocation = this.props.news.news_url;
+		var newTime = this.props.news.news_publishedAt;
+		var newsBigBody = this.props.news.news_content;
+		var newsAuthor = this.props.news.news_author
 
 		return (
 			<div className="">
@@ -90,7 +90,7 @@ class NewsComponent extends React.Component {
 							this.state.expanded ?
 								<ExpandedNewsContent
 									newsLink={newsLocation}
-									imgLoc={this.props.news.urlToImage}
+									imgLoc={this.props.news.news_urlToImage}
 									body={newsBigBody} />
 								: newsBody
 						}</div>
@@ -133,9 +133,7 @@ export class ExplorePageComp extends React.Component {
 		var techNewsList = [];
 		var otheNewsList = [];
 
-		for (let index = 0;
-			index < this.getMinLength(news_file_data_ent_file1.length);
-			index++) {
+		for (let index = 0;index < this.getMinLength(news_file_data_ent_file1.length); index++) {
 			entNewsList.push(
 				<NewsComponent
 					news={news_file_data_ent_file1[index]}

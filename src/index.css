@@ -9,8 +9,9 @@
 }
 
 .styleFont {
-  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+  font-family: 'Montserrat';
 }
+
 
 .lightGreyBG{
   background-color: #f8f9fb;
@@ -49,4 +50,13 @@ img {
 
 .funHands {
   font-family: 'Indie Flower';
+}
+
+.roundedCorner {
+  border-radius: 10px;
+}
+
+
+.mainBG{
+  background-color: rgb(177, 255, 194);
 }

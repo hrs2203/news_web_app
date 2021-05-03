@@ -30,7 +30,6 @@ export class LoginPageComp extends React.Component {
 	 * delete pref as if new user is logged it.
 	 */
 	login_btn() {
-		console.log("login btn");
 
 		const requestOptions = {
 			method: 'POST',
@@ -46,11 +45,11 @@ export class LoginPageComp extends React.Component {
 		fetch("http://127.0.0.1:8000/api/user/auth/login", requestOptions)
 			.then(async (resp) => {
 				const data = await resp.json();
-				if (data.data.status === true) {
+				if (data.data === true) {
 					this.props.updateGlobal({
 						"messageBody": {
 							"messageType": 0,
-							"messageBody": `${data.data.message}, Getting User Details`,
+							"messageBody": `Login Successfull, Getting User Details`,
 							"showMessage": true
 						}
 					})
@@ -79,8 +78,6 @@ export class LoginPageComp extends React.Component {
 								userPreference[element["searchClass"]] = userPreference[element["searchClass"]] + 1
 							});
 
-							console.log(userPreference);
-
 							this.props.updateGlobal({
 								"pageIndex": 2,
 								"isLoggedIn": true,
@@ -104,7 +101,7 @@ export class LoginPageComp extends React.Component {
 					this.props.updateGlobal({
 						"messageBody": {
 							"messageType": 1,
-							"messageBody": data.data.message,
+							"messageBody": "Login Failes, invalid credentials",
 							"showMessage": true
 						}
 					})

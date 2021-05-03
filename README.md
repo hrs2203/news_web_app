@@ -1,3 +1,3 @@
 # React based github page.
 
-> Personal Protfolio using ReactJs, on deployment.
+> React js Based news website.
