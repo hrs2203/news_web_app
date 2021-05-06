@@ -269,7 +269,7 @@ export class SignupPageComp extends React.Component {
 						},
 						"messageBody": {
 							"messageType": 0,
-							"messageBody": `Welcome ${respData.data.userName}`,
+							"messageBody": `Welcome ${respData.data.user.user_name}`,
 							"showMessage": true
 						}
 					})
